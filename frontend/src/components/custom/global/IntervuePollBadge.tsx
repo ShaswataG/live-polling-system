@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import intervuePollIcon from 'src/assets/home/intervue-poll-icon.svg';
+import intervuePollIcon from '@/assets/home/intervue-poll-icon.svg';
 
 export default function BadgeComponent() {
     return (
