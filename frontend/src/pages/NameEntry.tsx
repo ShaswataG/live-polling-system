@@ -40,28 +40,27 @@ export default function NameEntry() {
             // For demo purposes, use a default poll ID or create one
             let pollId = localStorage.getItem('pollId')
             if (!pollId) {
-                if (role === 'teacher') {
-                    // Teachers create a new poll
-                    pollId = 'demo-poll'
-                    const pollData = await apiService.createPoll({
-                        pollId: pollId || '',
-                        title: `${name.trim()}'s Poll`
-                    })
-                    pollId = pollData.data.pollId
-                } else {
-                    // Students join a default demo poll (you might want to add poll selection later)
-                    pollId = 'demo-poll'
-                    // Ensure demo poll exists
+                pollId = 'demo-poll'
+
+                // Check if demo poll already exists (for both teachers and students)
+                try {
+                    await apiService.getPoll(pollId)
+                    console.log('Demo poll already exists, joining existing poll')
+                } catch (error) {
+                    // Demo poll doesn't exist, create it
                     try {
-                        await apiService.getPoll(pollId)
-                    } catch (error) {
-                        // Create demo poll if it doesn't exist
+                        const pollTitle = role === 'teacher' ? `${name.trim()}'s Poll` : 'Demo Poll'
                         await apiService.createPoll({
                             pollId: pollId,
-                            title: 'Demo Poll',
+                            title: pollTitle,
                         })
+                        console.log('Created new demo poll')
+                    } catch (createError) {
+                        // Handle the case where poll was created by another user between our check and create
+                        console.log('Poll was created by another user, proceeding with existing poll')
                     }
                 }
+
                 dispatch(setPollId(pollId))
             }
 

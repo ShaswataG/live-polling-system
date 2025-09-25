@@ -21,7 +21,7 @@ export default function Component({ questionNo, text, timeLimit, options, isTeac
     // Determine when to show percentages
     const showPercentages = isTeacher || submitted;
     const percentages = live?.percentages || {};
-    const total = live?.total || 0;
+    // const total = live?.total || 0;
 
     const handleSubmit = () => {
         if (!selectedOptionId || !pollId || !clientId || submitted || !currentQuestion) return;

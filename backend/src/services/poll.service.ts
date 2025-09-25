@@ -19,6 +19,15 @@ class PollService {
    * but you can still create more for future multicongruent polls support.
    */
   static async createPoll({ pollId, title, teacherId, config = {} }: { pollId: string; title: string; teacherId?: string; config?: Record<string, any> }) {
+    console.log(`Creating poll with ID: ${pollId}, title: ${title}, teacherId: ${teacherId}`);
+    
+    // Check if poll already exists
+    const existingPoll = await Poll.findOne({ pollId });
+    if (existingPoll) {
+      console.log(`Poll with ID: ${pollId} already exists, returning existing poll`);
+      return existingPoll;
+    }
+
     const poll = new Poll({
       pollId,
       title,
@@ -26,12 +35,26 @@ class PollService {
       config,
       status: 'active',
     });
-    await poll.save();
+    
+    try {
+      await poll.save();
+      console.log(`Created new poll with ID: ${pollId}`);
 
-    // audit
-    await new AuditLog({ pollId: poll._id, actorType: 'teacher', action: 'create_poll', payload: { pollId } }).save();
+      // audit
+      await new AuditLog({ pollId: poll._id, actorType: 'teacher', action: 'create_poll', payload: { pollId } }).save();
 
-    return poll;
+      return poll;
+    } catch (error: any) {
+      // Handle duplicate key error (race condition case)
+      if (error.code === 11000) {
+        console.log(`Poll with ID: ${pollId} was created by another process, fetching existing poll`);
+        const existingPoll = await Poll.findOne({ pollId });
+        if (existingPoll) {
+          return existingPoll;
+        }
+      }
+      throw error;
+    }
   }
 
   static async getPollByPollId(pollId: string) {
