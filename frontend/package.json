@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://Shaswatag.github.io/live-polling-system/live-polling-system",
+  "homepage": "https://Shaswatag.github.io/live-polling-system",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
