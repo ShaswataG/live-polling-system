@@ -40,12 +40,6 @@ export default function QuestionFormComponent() {
         }
     }
 
-    const updateOption = (id: string, text: string) => {
-        setOptions(options.map(opt =>
-            opt.id === id ? { ...opt, text } : opt
-        ))
-    }
-
     const setCorrectOption = (id: string) => {
         setOptions(options.map(opt => ({
             ...opt,

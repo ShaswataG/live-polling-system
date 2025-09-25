@@ -5,58 +5,14 @@ import { setQuestionStarted, setQuestionStartedAdmin, setLiveUpdate, setQuestion
 import { setParticipants } from '../participants/participantsSlice'
 import { setPollId } from '../session/sessionSlice'
 
-export const connectSocket = createAsyncThunk(
-  'socket/connect',
-  async (serverUrl?: string) => {
-    const socket = socketService.connect(serverUrl)
-    return socket.id
-  }
-)
-
-export const joinRoom = createAsyncThunk(
-  'socket/joinRoom',
-  async (payload: { pollId: string; role: string; clientId: string; displayName: string }, { dispatch }) => {
-    socketService.joinRoom(payload)
-    dispatch(setPollId(payload.pollId))
-    return payload
-  }
-)
-
-export const submitAnswer = createAsyncThunk(
-  'socket/submitAnswer',
-  async (payload: { pollId: string; questionId: string; clientId: string; optionId: string }, { dispatch }) => {
-    socketService.submitAnswer(payload)
-    dispatch(markSubmitted())
-    return payload
-  }
-)
-
-export const startQuestion = createAsyncThunk(
-  'socket/startQuestion',
-  async (payload: { pollId: string; questionId: string }) => {
-    socketService.startQuestion(payload)
-    return payload
-  }
-)
-
-export const createQuestion = createAsyncThunk(
-  'socket/createQuestion',
-  async (payload: { pollId: string; text: string; options: any[]; timeLimit?: number }) => {
-    return new Promise((resolve, reject) => {
-      socketService.createQuestion(payload, (response) => {
-        if (response.error) {
-          reject(new Error(response.error))
-        } else {
-          resolve(response)
-        }
-      })
-    })
-  }
-)
-
 export const bindSocketListeners = createAsyncThunk(
   'socket/bindListeners',
   async (_, { dispatch }) => {
+    // Ensure socket is connected first
+    if (!socketService.isConnected) {
+      console.log('Socket not connected, binding listeners anyway...')
+    }
+
     // Connection events
     socketService.on('connect', () => {
       console.log('Socket connected')
@@ -158,5 +114,58 @@ export const bindSocketListeners = createAsyncThunk(
     })
 
     return true
+  }
+)
+
+export const connectSocket = createAsyncThunk(
+  'socket/connect',
+  async (serverUrl: string | undefined, { dispatch }) => {
+    const socket = socketService.connect(serverUrl)
+    
+    // Bind listeners immediately after connection
+    dispatch(bindSocketListeners())
+    
+    return socket.id
+  }
+)
+
+export const joinRoom = createAsyncThunk(
+  'socket/joinRoom',
+  async (payload: { pollId: string; role: string; clientId: string; displayName: string }, { dispatch }) => {
+    socketService.joinRoom(payload)
+    dispatch(setPollId(payload.pollId))
+    return payload
+  }
+)
+
+export const submitAnswer = createAsyncThunk(
+  'socket/submitAnswer',
+  async (payload: { pollId: string; questionId: string; clientId: string; optionId: string }, { dispatch }) => {
+    socketService.submitAnswer(payload)
+    dispatch(markSubmitted())
+    return payload
+  }
+)
+
+export const startQuestion = createAsyncThunk(
+  'socket/startQuestion',
+  async (payload: { pollId: string; questionId: string }) => {
+    socketService.startQuestion(payload)
+    return payload
+  }
+)
+
+export const createQuestion = createAsyncThunk(
+  'socket/createQuestion',
+  async (payload: { pollId: string; text: string; options: any[]; timeLimit?: number }) => {
+    return new Promise((resolve, reject) => {
+      socketService.createQuestion(payload, (response) => {
+        if (response.error) {
+          reject(new Error(response.error))
+        } else {
+          resolve(response)
+        }
+      })
+    })
   }
 )

@@ -42,10 +42,10 @@ export default function NameEntry() {
             if (!pollId) {
                 if (role === 'teacher') {
                     // Teachers create a new poll
+                    pollId = 'demo-poll'
                     const pollData = await apiService.createPoll({
-                        pollId: crypto.randomUUID().substring(0, 8),
-                        title: `${name.trim()}'s Poll`,
-                        // Don't pass teacherId since it expects MongoDB ObjectId format
+                        pollId: pollId || '',
+                        title: `${name.trim()}'s Poll`
                     })
                     pollId = pollData.data.pollId
                 } else {
@@ -65,7 +65,10 @@ export default function NameEntry() {
                 dispatch(setPollId(pollId))
             }
 
-            // Join the room via socket
+            // 1. Connect socket first
+            await dispatch(connectSocket())
+
+            // 2. Join the room via socket
             await dispatch(joinRoom({
                 pollId,
                 role,
