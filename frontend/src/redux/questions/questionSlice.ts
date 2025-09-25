@@ -9,6 +9,7 @@ export interface LiveState {
 	counts: Record<string, number>
 	percentages: Record<string, number>
 	total: number
+	expectedRespondents: number
 }
 
 export interface QuestionsState {
@@ -53,7 +54,7 @@ const questionsSlice = createSlice({
 			}
 			state.currentQuestion = q
 			state.submitted = false
-			state.live = { counts: {}, percentages: {}, total: 0 }
+			state.live = { counts: {}, percentages: {}, total: 0, expectedRespondents: 0 }
 			state.timerEndsAt = Date.now() + (q.timeLimit * 1000)
 		},
 		setQuestionStartedAdmin(state, action: PayloadAction<QuestionAdminEvent>) {
@@ -68,14 +69,16 @@ const questionsSlice = createSlice({
 			state.live = {
 				counts: action.payload.counts,
 				percentages: action.payload.percentages,
-				total: action.payload.total
+				total: action.payload.total,
+				expectedRespondents: action.payload.expectedRespondents
 			}
 		},
 		setQuestionEnded(state, action: PayloadAction<QuestionEndedEvent>) {
 			state.live = {
 				counts: action.payload.counts,
 				percentages: action.payload.percentages,
-				total: action.payload.total
+				total: action.payload.total,
+				expectedRespondents: action.payload.expectedRespondents
 			}
 			state.questions = [...state.questions, state.currentQuestion!].filter(Boolean as any)
 		},

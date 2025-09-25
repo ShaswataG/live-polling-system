@@ -214,21 +214,28 @@ const attachSocket = (server: any) => {
 
         socket.emit('submit_ack', { success: true });
 
-        // Broadcast live_update (percentages) using in-memory counts
-        const percentages: Record<string, number> = {};
-        for (const [optId, cnt] of qData.counts.entries()) {
-          percentages[optId] = qData.total > 0 ? Math.round((cnt / qData.total) * 100) : 0;
-        }
-        io.to(`poll:${pollId}`).emit('live_update', { questionId, counts: Object.fromEntries(qData.counts), total: qData.total, percentages });
-
-        // Check if all current students have answered
+        // Calculate expected respondents (active students)
         const participantsMap = joinedClients.get(pollId) || new Map();
-        // Count only students (role == 'student') currently joined
         let expectedRespondents = 0;
         for (const [cid, info] of participantsMap.entries()) {
           if (info.role !== 'teacher') expectedRespondents += 1;
         }
 
+        // Broadcast live_update (percentages) using in-memory counts
+        const percentages: Record<string, number> = {};
+        for (const [optId, cnt] of qData.counts.entries()) {
+          percentages[optId] = qData.total > 0 ? Math.round((cnt / qData.total) * 100) : 0;
+        }
+
+        io.to(`poll:${pollId}`).emit('live_update', { 
+          questionId, 
+          counts: Object.fromEntries(qData.counts), 
+          total: qData.total, 
+          percentages,
+          expectedRespondents
+        });
+
+        // Check if all current students have answered
         // If expected is zero (no students), we should wait until timer expiry to persist (or you might persist zero).
         if (expectedRespondents > 0 && qData.total >= expectedRespondents) {
           // All students answered—persist aggregated stats, end question, broadcast final results
@@ -385,7 +392,7 @@ async function persistFinalStatsAndEndQuestion({ pollId, questionId, io }: { pol
     logger.warn('persistFinalStatsAndEndQuestion: no in-memory data');
     // still mark question ended in DB
     await PollService.endQuestion({ pollId, questionId, finalStats: null });
-    io.to(`poll:${pollId}`).emit('question_ended', { questionId, counts: {}, total: 0 });
+    io.to(`poll:${pollId}`).emit('question_ended', { questionId, counts: {}, total: 0, percentages: {}, expectedRespondents: 0 });
     return;
   }
 
@@ -417,7 +424,21 @@ async function persistFinalStatsAndEndQuestion({ pollId, questionId, io }: { pol
       const count = countsObj[k] ?? 0;
       percentages[k] = finalStats.total > 0 ? Math.round((count / finalStats.total) * 100) : 0;
     }
-    io.to(`poll:${pollId}`).emit('question_ended', { questionId, counts: countsObj, total: finalStats.total, percentages });
+    
+    // Calculate expected respondents
+    const participantsMap = joinedClients.get(pollId) || new Map();
+    let expectedRespondents = 0;
+    for (const [cid, info] of participantsMap.entries()) {
+      if (info.role !== 'teacher') expectedRespondents += 1;
+    }
+    
+    io.to(`poll:${pollId}`).emit('question_ended', { 
+      questionId, 
+      counts: countsObj, 
+      total: finalStats.total, 
+      percentages,
+      expectedRespondents
+    });
 
     // Remove in-memory buffer for this question (keep if you want to allow late-joins to view)
     activeAnswers.get(pollId).delete(questionId);

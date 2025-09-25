@@ -108,14 +108,32 @@ export default function Component({ questionNo, text, timeLimit, options, isTeac
                     )} */}
                 </div>
             </div>
-            <div className="flex justify-end w-full mx-auto p-4">
-                <Button
-                    onClick={handleSubmit}
-                    disabled={!selectedOptionId || submitted}
-                    className="bg-gradient-to-r from-[#8F64E1] to-[#1D68BD] hover:from-[#7454C8] hover:to-[#1557AC] disabled:opacity-50 disabled:cursor-not-allowed rounded-3xl focus:outline-none active:outline-none px-8 py-2"
-                >
-                    {submitted ? 'Submitted' : 'Submit'}
-                </Button>
+            <div className="flex justify-center w-full mx-auto p-4 gap-4">
+                {!isTeacher && !submitted && (
+                    <Button
+                        onClick={handleSubmit}
+                        disabled={!selectedOptionId}
+                        className="bg-gradient-to-r from-[#8F64E1] to-[#1D68BD] hover:from-[#7454C8] hover:to-[#1557AC] disabled:opacity-50 disabled:cursor-not-allowed rounded-3xl focus:outline-none active:outline-none px-8 py-2"
+                    >
+                        Submit
+                    </Button>
+                )}
+
+                {!isTeacher && submitted && (
+                    <div className="text-center text-gray-600">
+                        <p className="mb-4">Wait for the teacher to ask a new question...</p>
+                    </div>
+                )}
+
+                {isTeacher && (
+                    <Button
+                        onClick={() => navigate('/create-question')}
+                        disabled={!allStudentsSubmitted}
+                        className="bg-gradient-to-r from-[#8F64E1] to-[#1D68BD] hover:from-[#7454C8] hover:to-[#1557AC] disabled:opacity-50 disabled:cursor-not-allowed rounded-3xl focus:outline-none active:outline-none px-8 py-2"
+                    >
+                        + Ask a new question
+                    </Button>
+                )}
             </div>
         </div>
     )
