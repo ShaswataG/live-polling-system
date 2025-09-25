@@ -29,6 +29,7 @@ export interface LiveUpdateEvent {
 	counts: Record<string, number>;
 	total: number;
 	percentages: Record<string, number>;
+	expectedRespondents: number;
 }
 
 export interface QuestionEndedEvent extends LiveUpdateEvent {}

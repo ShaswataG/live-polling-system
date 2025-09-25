@@ -67,24 +67,26 @@ export const bindSocketListeners = createAsyncThunk(
     })
 
     // Live updates during question
-    socketService.on('live_update', (data: { questionId: string; counts: Record<string, number>; total: number; percentages: Record<string, number> }) => {
+    socketService.on('live_update', (data: { questionId: string; counts: Record<string, number>; total: number; percentages: Record<string, number>; expectedRespondents: number }) => {
       console.log('Live update:', data)
       dispatch(setLiveUpdate({
         questionId: data.questionId,
         counts: data.counts,
         percentages: data.percentages,
-        total: data.total
+        total: data.total,
+        expectedRespondents: data.expectedRespondents
       }))
     })
 
     // Question ended
-    socketService.on('question_ended', (data: { questionId: string; counts: Record<string, number>; total: number; percentages: Record<string, number> }) => {
+    socketService.on('question_ended', (data: { questionId: string; counts: Record<string, number>; total: number; percentages: Record<string, number>; expectedRespondents: number }) => {
       console.log('Question ended:', data)
       dispatch(setQuestionEnded({
         questionId: data.questionId,
         counts: data.counts,
         percentages: data.percentages,
-        total: data.total
+        total: data.total,
+        expectedRespondents: data.expectedRespondents
       }))
     })
 
@@ -118,6 +120,10 @@ export const bindSocketListeners = createAsyncThunk(
     socketService.on('error', (data: { message: string }) => {
       console.error('Socket error:', data)
     })
+
+    // Mark listeners as bound to prevent duplicates
+    socketService.setListenersBound(true)
+    console.log('Socket listeners bound successfully')
 
     return true
   }
