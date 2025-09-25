@@ -23,6 +23,11 @@ export default function Component({ questionNo, text, timeLimit, options, isTeac
     const percentages = live?.percentages || {};
     // const total = live?.total || 0;
 
+    // Check if all students have submitted (for teacher button)
+    const allStudentsSubmitted = live ?
+        (live.expectedRespondents === 0 || live.total >= live.expectedRespondents) :
+        false;
+
     const handleSubmit = () => {
         if (!selectedOptionId || !pollId || !clientId || submitted || !currentQuestion) return;
 
