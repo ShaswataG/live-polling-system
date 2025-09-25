@@ -4,11 +4,24 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { submitAnswer } from "@/redux/socket/socketThunks";
 import type { Option } from "@/types/question.types";
 
-export default function Component({ questionNo, text, timeLimit, options }: { questionNo: number; text: string; timeLimit: number; options: Option[] }) {
+interface QuestionProps {
+    questionNo: number;
+    text: string;
+    timeLimit: number;
+    options: Option[];
+    isTeacher?: boolean;
+}
+
+export default function Component({ questionNo, text, timeLimit, options, isTeacher = false }: QuestionProps) {
     const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
     const dispatch = useAppDispatch();
     const { pollId, clientId } = useAppSelector(state => state.session);
-    const { submitted, currentQuestion } = useAppSelector(state => state.questions);
+    const { submitted, currentQuestion, live } = useAppSelector(state => state.questions);
+
+    // Determine when to show percentages
+    const showPercentages = isTeacher || submitted;
+    const percentages = live?.percentages || {};
+    const total = live?.total || 0;
 
     const handleSubmit = () => {
         if (!selectedOptionId || !pollId || !clientId || submitted || !currentQuestion) return;
@@ -21,8 +34,18 @@ export default function Component({ questionNo, text, timeLimit, options }: { qu
         }));
     };
 
+    const getPercentageColor = (isSelected: boolean, isCorrect?: boolean) => {
+        if (isTeacher && isCorrect) {
+            return 'bg-green-500'; // Green for correct answer (teacher view)
+        }
+        if (isSelected) {
+            return 'bg-[#6766D5]'; // Purple for selected option
+        }
+        return 'bg-[#7451B6]'; // Default purple
+    };
+
     return (
-        <div className="flex flex-col gap-4 p-6 bg-whited">
+        <div className="flex flex-col gap-4 p-6 bg-white">
             <div className="flex justify-between items-center">
                 <div>
                     <p className="font-semibold">Question {questionNo}</p>
@@ -37,15 +60,52 @@ export default function Component({ questionNo, text, timeLimit, options }: { qu
                 </div>
                 <div className="p-4">
                     <div className="flex flex-col gap-2">
-                        {options.map((option, index) => (
-                            <div key={option.optionId} className={"flex items-center gap-2 h-[50px] p-4 border rounded-lg cursor-pointer hover:bg-gray-100 " + (selectedOptionId === option.optionId ? "bg-white border-2 border-[#8F64E1]" : "bg-gray-200")} onClick={() => !submitted && setSelectedOptionId(option.optionId)}>
-                                <div className="w-[26px] h-[26px] rounded-full bg-[#7451B6] text-white flex items-center justify-center text-sm">
-                                    <p>{index + 1}</p>
+                        {options.map((option, index) => {
+                            const percentage = percentages[option.optionId] || 0;
+                            const isSelected = selectedOptionId === option.optionId;
+                            const isCorrect = isTeacher && option.isCorrect;
+
+                            return (
+                                <div
+                                    key={option.optionId}
+                                    className={`relative flex items-center gap-2 h-[50px] p-4 border rounded-lg cursor-pointer hover:bg-gray-100 overflow-hidden ${isSelected ? "bg-white border-2 border-[#8F64E1]" : "bg-gray-200"
+                                        }`}
+                                    onClick={() => !submitted && setSelectedOptionId(option.optionId)}
+                                >
+                                    {/* Percentage Bar Background */}
+                                    {showPercentages && percentage > 0 && (
+                                        <div
+                                            className={`absolute left-0 top-0 h-full opacity-30 transition-all duration-300 ${getPercentageColor(isSelected, isCorrect)}`}
+                                            style={{ width: `${percentage}%` }}
+                                        />
+                                    )}
+
+                                    {/* Option Content */}
+                                    <div className="relative z-10 flex items-center gap-2 w-full">
+                                        <div className="w-[26px] h-[26px] rounded-full bg-[#7451B6] text-white flex items-center justify-center text-sm">
+                                            <p>{index + 1}</p>
+                                        </div>
+                                        <p className="text-sm flex-1">{option.text}</p>
+                                        {showPercentages && (
+                                            <div className="flex items-center gap-2">
+                                                {isTeacher && isCorrect && (
+                                                    <span className="text-green-600 font-semibold text-xs">✓</span>
+                                                )}
+                                                <span className="text-sm font-semibold">{percentage}%</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                                <p className="text-sm">{option.text}</p>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
+
+                    {/* Show total responses count */}
+                    {/* {showPercentages && total > 0 && (
+                        <div className="mt-2 text-center text-sm text-gray-600">
+                            {total} response{total !== 1 ? 's' : ''} received
+                        </div>
+                    )} */}
                 </div>
             </div>
             <div className="flex justify-end w-full mx-auto p-4">

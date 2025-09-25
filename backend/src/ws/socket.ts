@@ -345,13 +345,23 @@ const attachSocket = (server: any) => {
     socket.on("teacher:create_question", async ({ pollId, text, options, timeLimit }: { pollId: string; text: string; options: any[]; timeLimit?: number }, cb?: (response: any) => void) => {
       try {
         const question = await PollService.createQuestion(pollId, { text, options, timeLimit });
-        // Broadcast sanitized to all
-        io.to(`poll:${pollId}`).emit("new_question", {
-          ...question.toObject?.() || question,
-          options: sanitizeOptionsForStudents(question.options)
+        
+        // Broadcast question_started to all participants (students get sanitized options)
+        io.to(`poll:${pollId}`).emit("question_started", {
+          questionId: question._id.toString(),
+          text: question.text,
+          options: sanitizeOptionsForStudents(question.options),
+          timeLimit: question.timeLimit,
         });
-        // Send full to teachers only
-        emitToTeachers(pollId, 'new_question_admin', question);
+
+        // Send admin view with isCorrect to teachers only
+        emitToTeachers(pollId, 'question_started_admin', {
+          questionId: question._id.toString(),
+          text: question.text,
+          options: question.options, // Teachers get full options with isCorrect
+          timeLimit: question.timeLimit,
+        });
+
         cb?.({ success: true, question }); // safe optional callback
       } catch (err: any) {
         cb?.({ error: err.message || "Failed to create question" });

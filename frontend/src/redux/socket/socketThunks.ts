@@ -58,6 +58,12 @@ export const bindSocketListeners = createAsyncThunk(
     // New question created
     socketService.on('new_question', (data: any) => {
       console.log('New question created:', data)
+      dispatch(setQuestionStarted({
+        questionId: data._id || data.questionId,
+        text: data.text,
+        options: data.options,
+        timeLimit: data.timeLimit
+      }))
     })
 
     // Live updates during question
