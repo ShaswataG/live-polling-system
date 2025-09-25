@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { submitAnswer } from "@/redux/socket/socketThunks";
 import Timer from "./Timer";
@@ -15,6 +16,7 @@ interface QuestionProps {
 
 export default function Component({ questionNo, text, timeLimit, options, isTeacher = false }: QuestionProps) {
     const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+    const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const { pollId, clientId } = useAppSelector(state => state.session);
     const { submitted, currentQuestion, live } = useAppSelector(state => state.questions);
