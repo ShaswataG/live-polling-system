@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { submitAnswer } from "@/redux/socket/socketThunks";
+import Timer from "./Timer";
 import type { Option } from "@/types/question.types";
 
 interface QuestionProps {
@@ -55,8 +56,13 @@ export default function Component({ questionNo, text, timeLimit, options, isTeac
                 <div>
                     <p className="font-semibold">Question {questionNo}</p>
                 </div>
-                <div>
-                    <p className="text-sm text-gray-500">{timeLimit} seconds</p>
+                <div className="flex items-center gap-4">
+                    {!isTeacher && (
+                        <Timer timeLimit={timeLimit} />
+                    )}
+                    <div>
+                        <p className="text-sm text-gray-500">{timeLimit} seconds</p>
+                    </div>
                 </div>
             </div>
             <div className="rounded-lg border-2 border-[#8F64E1] relative">
