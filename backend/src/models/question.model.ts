@@ -1,7 +1,7 @@
 import type { Types } from 'mongoose';
 const mongoose = require('mongoose');
 const { Schema } = require('mongoose');
-export type OptionItem = { optionId: string; text: string };
+export type OptionItem = { optionId: string; text: string; isCorrect?: boolean };
 
 
 interface IQuestion extends Document {
@@ -18,7 +18,8 @@ interface IQuestion extends Document {
 
 const OptionSchema = new Schema({
 optionId: { type: String, required: true },
-text: { type: String, required: true }
+text: { type: String, required: true },
+isCorrect: { type: Boolean, default: false }
 }, { _id: false });
 
 
