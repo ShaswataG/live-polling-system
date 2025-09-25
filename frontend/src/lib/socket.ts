@@ -5,13 +5,23 @@ class SocketService {
   private socket: Socket | null = null
   private reconnectAttempts = 0
   private maxReconnectAttempts = 5
+  private listenersbound = false
 
   connect(serverUrl: string = import.meta.env.VITE_API_BASE_URL) {
-    if (this.socket?.connected) return this.socket
+    if (this.socket?.connected) {
+      console.log('Socket already connected, returning existing connection')
+      return this.socket
+    }
 
+    console.log('Creating new socket connection...')
     this.socket = io(serverUrl, {
       transports: ['websocket'],
       autoConnect: true,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 5,
+      timeout: 20000,
     })
 
     this.socket.on('connect', () => {
@@ -21,6 +31,19 @@ class SocketService {
 
     this.socket.on('disconnect', (reason) => {
       console.log('Socket disconnected:', reason)
+      // Reset listeners bound flag if disconnected unexpectedly
+      if (reason !== 'io client disconnect') {
+        this.listenersbound = false
+      }
+    })
+
+    this.socket.on('reconnect', (attemptNumber) => {
+      console.log('Socket reconnected after', attemptNumber, 'attempts')
+      this.reconnectAttempts = 0
+    })
+
+    this.socket.on('reconnect_attempt', (attemptNumber) => {
+      console.log('Socket reconnection attempt:', attemptNumber)
     })
 
     this.socket.on('connect_error', (error) => {
@@ -76,12 +99,22 @@ class SocketService {
   }
 
   disconnect() {
+    console.log('Disconnecting socket...')
     this.socket?.disconnect()
     this.socket = null
+    this.listenersbound = false
   }
 
   get isConnected() {
     return this.socket?.connected || false
+  }
+
+  get areListenersBound() {
+    return this.listenersbound
+  }
+
+  setListenersBound(bound: boolean) {
+    this.listenersbound = bound
   }
 
   get socketId() {

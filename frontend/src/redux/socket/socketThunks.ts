@@ -8,14 +8,29 @@ import { setPollId } from '../session/sessionSlice'
 export const bindSocketListeners = createAsyncThunk(
   'socket/bindListeners',
   async (_, { dispatch }) => {
+    // Check if listeners are already bound to prevent duplicates
+    if (socketService.areListenersBound) {
+      console.log('Socket listeners already bound, skipping...')
+      return
+    }
+
     // Ensure socket is connected first
     if (!socketService.isConnected) {
       console.log('Socket not connected, binding listeners anyway...')
     }
 
+    console.log('Binding socket listeners...')
+
     // Connection events
     socketService.on('connect', () => {
       console.log('Socket connected')
+    })
+
+    // Reconnection events
+    socketService.on('reconnect', () => {
+      console.log('Socket reconnected - rebinding listeners if needed')
+      // Listeners are already bound, but we might need to rejoin room
+      // This would be handled by the specific page components if needed
     })
 
     // Join room response
@@ -179,5 +194,31 @@ export const createQuestion = createAsyncThunk(
         }
       })
     })
+  }
+)
+
+// Cleanup socket listeners and disconnect
+export const cleanupSocket = createAsyncThunk(
+  'socket/cleanup',
+  async () => {
+    console.log('Cleaning up socket connection and listeners')
+    
+    // Remove all listeners
+    socketService.off('connect')
+    socketService.off('joined')
+    socketService.off('question_started')
+    socketService.off('question_started_admin')
+    socketService.off('new_question')
+    socketService.off('live_update')
+    socketService.off('question_ended')
+    socketService.off('participants_update')
+    socketService.off('submit_ack')
+    socketService.off('kicked')
+    socketService.off('error')
+    socketService.off('disconnect')
+    socketService.off('connect_error')
+    
+    // Disconnect socket
+    socketService.disconnect()
   }
 )

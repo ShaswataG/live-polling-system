@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,11 +15,6 @@ export default function NameEntry() {
     const { role } = useAppSelector(state => state.session)
     const [name, setName] = useState('')
     const [isLoading, setIsLoading] = useState(false)
-
-    useEffect(() => {
-        // Connect socket when component mounts
-        dispatch(connectSocket())
-    }, [dispatch])
 
     const handleContinue = async () => {
         if (!name.trim() || !role) return
