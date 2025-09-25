@@ -41,4 +41,4 @@ const QuestionSchema = new Schema(
 QuestionSchema.index({ pollId: 1, status: 1 });
 
 export type { IQuestion };
-module.exports.QuestionModel = mongoose.model('Question', QuestionSchema);
+module.exports = mongoose.model('Question', QuestionSchema);

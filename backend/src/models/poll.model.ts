@@ -43,4 +43,4 @@ const PollSchema = new Schema(
 PollSchema.index({ teacherId: 1, createdAt: -1 });
 
 export type { IPoll };
-module.exports.PollModel = mongoose.model('Poll', PollSchema);
+module.exports = mongoose.model('Poll', PollSchema);

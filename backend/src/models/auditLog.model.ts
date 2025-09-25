@@ -28,4 +28,4 @@ const AuditLogSchema = new Schema(
 AuditLogSchema.index({ pollId: 1, createdAt: -1 });
 
 export type { IAuditLog };
-module.exports.AuditLogModel = mongoose.model('AuditLog', AuditLogSchema);
+module.exports = mongoose.model('AuditLog', AuditLogSchema);

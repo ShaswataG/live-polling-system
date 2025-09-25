@@ -37,4 +37,4 @@ AnswerSchema.index({ questionId: 1, optionId: 1 });
 AnswerSchema.index({ pollId: 1, submittedAt: -1 });
 
 export type { IAnswer };
-module.exports.AnswerModel = mongoose.model('Answer', AnswerSchema);
+module.exports = mongoose.model('Answer', AnswerSchema);

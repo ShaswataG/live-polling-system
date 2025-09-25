@@ -27,4 +27,4 @@ QuestionStatsSchema.index({ questionId: 1 }, { unique: true });
 QuestionStatsSchema.index({ pollId: 1 });
 
 export type { IQuestionStats };
-module.exports.QuestionStatsModel = mongoose.model('QuestionStats', QuestionStatsSchema);
+module.exports = mongoose.model('QuestionStats', QuestionStatsSchema);
