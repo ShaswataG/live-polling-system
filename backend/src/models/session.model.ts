@@ -29,4 +29,4 @@ const SessionSchema = new Schema(
 SessionSchema.index({ lastSeenAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 });
 
 
-module.exports.SessionModel = mongoose.model('Session', SessionSchema);
+module.exports = mongoose.model('Session', SessionSchema);
