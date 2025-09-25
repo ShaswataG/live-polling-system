@@ -4,7 +4,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api'
 export interface CreatePollRequest {
   pollId: string
   title: string
-  teacherId?: string
+  teacherId?: string  // Optional - should be MongoDB ObjectId format if provided
   config?: {
     maxStudents?: number
     allowLateJoin?: boolean

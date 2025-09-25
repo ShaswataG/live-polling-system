@@ -45,7 +45,7 @@ export default function NameEntry() {
                     const pollData = await apiService.createPoll({
                         pollId: crypto.randomUUID().substring(0, 8),
                         title: `${name.trim()}'s Poll`,
-                        teacherId: clientId,
+                        // Don't pass teacherId since it expects MongoDB ObjectId format
                     })
                     pollId = pollData.data.pollId
                 } else {

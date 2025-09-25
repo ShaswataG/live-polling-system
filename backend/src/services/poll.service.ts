@@ -2,6 +2,7 @@
 // Business logic for polls/questions/answers/results.
 // Uses Mongoose models. Designed to be DB-agnostic for easier future extension.
 
+const mongoose = require('mongoose');
 const logger = require('../utils/logger');
 const Poll = require('../models/poll.model'); // adjust if your model exports differ
 const Question = require('../models/question.model');
@@ -21,7 +22,7 @@ class PollService {
     const poll = new Poll({
       pollId,
       title,
-      teacherId: teacherId ? Types.ObjectId(teacherId) : undefined,
+      teacherId: teacherId ? new mongoose.Types.ObjectId(teacherId) : undefined,
       config,
       status: 'active',
     });
