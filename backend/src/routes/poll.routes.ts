@@ -1,29 +1,24 @@
+// src/routes/poll.routes.ts
 const express = require('express');
 const router = express.Router();
+const pollController = require('../controllers/poll.controller');
 
+// Create a new poll
+router.post('/', pollController.createPoll);
 
-router.post('/', (req: Request, res: Response) => {
-    // Create a new poll
-});
+// Get all polls
+router.get('/', pollController.getAllPolls);
 
-router.get('/', (req: Request, res: Response) => {
-    // Get all polls
-});
+// Get a single poll by ID
+router.get('/:pollId', pollController.getPoll);
 
-router.get('/:pollId', (req: Request, res: Response) => {
-    // Get a single poll by ID
-});
+// Get poll results by ID
+router.get('/:pollId/results', pollController.getPollResults);
 
-router.get('/:pollId/results', (req: Request, res: Response) => {
-    // Get poll results by ID
-});
+// End a poll by ID
+router.post('/:pollId/end', pollController.endPoll);
 
-router.post("/:pollId/end", (req: Request, res: Response) => {
-    // End a poll by ID
-});
-
-router.post("/:pollId/kick", (req: Request, res: Response) => {
-    // Kick a user from a poll
-});
+// Kick a user from a poll (removes session server-side)
+router.post('/:pollId/kick', pollController.kickUser);
 
 module.exports = router;
