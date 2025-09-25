@@ -6,7 +6,7 @@ class SocketService {
   private reconnectAttempts = 0
   private maxReconnectAttempts = 5
 
-  connect(serverUrl: string = 'http://localhost:4000') {
+  connect(serverUrl: string = import.meta.env.VITE_API_BASE_URL) {
     if (this.socket?.connected) return this.socket
 
     this.socket = io(serverUrl, {
