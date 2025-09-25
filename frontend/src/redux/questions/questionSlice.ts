@@ -2,7 +2,7 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
 import type { Question } from '../../types/question.types'
 import type { LiveUpdateEvent, QuestionEndedEvent, QuestionStartedEvent, QuestionAdminEvent } from '../../types/socket.types'
-import { getSocket } from '../../lib/socket'
+import socketService from '../../lib/socket'
 import type { RootState } from '../store'
 
 export interface LiveState {
@@ -34,8 +34,7 @@ const initialState: QuestionsState = {
 export const submitAnswer = createAsyncThunk(
 	'questions/submitAnswer',
 	async (payload: { pollId: string; questionId: string; clientId: string; optionId: string }, { getState }) => {
-		const socket = getSocket()
-		socket.emit('submit_answer', payload)
+		socketService.submitAnswer(payload)
 		const state = getState() as RootState
 		return { questionId: payload.questionId, previousCounts: state.questions.live?.counts || {} }
 	}
@@ -81,6 +80,7 @@ const questionsSlice = createSlice({
 			state.questions = [...state.questions, state.currentQuestion!].filter(Boolean as any)
 		},
 		markSubmitted(state) { state.submitted = true },
+		resetSubmitted(state) { state.submitted = false },
 		resetQuestionState(state) {
 			state.currentQuestion = null
 			state.currentAdminView = null
@@ -103,6 +103,7 @@ export const {
 	setLiveUpdate,
 	setQuestionEnded,
 	markSubmitted,
+	resetSubmitted,
 	resetQuestionState
 } = questionsSlice.actions
 export default questionsSlice.reducer

@@ -1,5 +1,5 @@
 // frontend/src/types/question.types.ts  (augment existing)
-interface Option {
+export interface Option {
 	optionId: string
 	text: string
 	// teacher-only info is never shown to students (but typed here for admin views)

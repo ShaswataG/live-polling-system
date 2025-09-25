@@ -1,8 +1,25 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { submitAnswer } from "@/redux/socket/socketThunks";
+import type { Option } from "@/types/question.types";
 
-export default function Component({ questionNo, text, timeLimit, options }: { questionNo: number; text: string; timeLimit: number; options: { optionId: number; text: string; isCorrect?: boolean }[] }) {
-    const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
+export default function Component({ questionNo, text, timeLimit, options }: { questionNo: number; text: string; timeLimit: number; options: Option[] }) {
+    const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+    const dispatch = useAppDispatch();
+    const { pollId, clientId } = useAppSelector(state => state.session);
+    const { submitted, currentQuestion } = useAppSelector(state => state.questions);
+
+    const handleSubmit = () => {
+        if (!selectedOptionId || !pollId || !clientId || submitted || !currentQuestion) return;
+
+        dispatch(submitAnswer({
+            pollId,
+            questionId: currentQuestion.questionId,
+            clientId,
+            optionId: selectedOptionId
+        }));
+    };
 
     return (
         <div className="flex flex-col gap-4 p-6 bg-whited">
@@ -20,10 +37,10 @@ export default function Component({ questionNo, text, timeLimit, options }: { qu
                 </div>
                 <div className="p-4">
                     <div className="flex flex-col gap-2">
-                        {options.map((option) => (
-                            <div key={option.optionId} className={"flex items-center gap-2 h-[50px] p-4 border rounded-lg cursor-pointer hover:bg-gray-100 " + (selectedOptionId === option.optionId ? "bg-white border-2 border-[#8F64E1]" : "bg-gray-200")} onClick={() => setSelectedOptionId(option.optionId)}>
-                                <div className="w-[26px] h-[26px] rounded-full bg-[#7451B6] text-white p-0">
-                                    <p className="w-full">{option.optionId}</p>
+                        {options.map((option, index) => (
+                            <div key={option.optionId} className={"flex items-center gap-2 h-[50px] p-4 border rounded-lg cursor-pointer hover:bg-gray-100 " + (selectedOptionId === option.optionId ? "bg-white border-2 border-[#8F64E1]" : "bg-gray-200")} onClick={() => !submitted && setSelectedOptionId(option.optionId)}>
+                                <div className="w-[26px] h-[26px] rounded-full bg-[#7451B6] text-white flex items-center justify-center text-sm">
+                                    <p>{index + 1}</p>
                                 </div>
                                 <p className="text-sm">{option.text}</p>
                             </div>
@@ -32,8 +49,12 @@ export default function Component({ questionNo, text, timeLimit, options }: { qu
                 </div>
             </div>
             <div className="flex justify-end w-full mx-auto p-4">
-                <Button className="bg-gradient-to-r from-[#8F64E1] to-[#1D68BD] rounded-3xl focus:outline-none active:outline-none">
-                    Submit
+                <Button
+                    onClick={handleSubmit}
+                    disabled={!selectedOptionId || submitted}
+                    className="bg-gradient-to-r from-[#8F64E1] to-[#1D68BD] hover:from-[#7454C8] hover:to-[#1557AC] disabled:opacity-50 disabled:cursor-not-allowed rounded-3xl focus:outline-none active:outline-none px-8 py-2"
+                >
+                    {submitted ? 'Submitted' : 'Submit'}
                 </Button>
             </div>
         </div>

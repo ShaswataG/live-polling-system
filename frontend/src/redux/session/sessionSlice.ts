@@ -1,54 +1,65 @@
 // frontend/src/redux/session/sessionSlice.ts
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
-import { getSocket } from '../../lib/socket'
-import type { Role } from '../../types/socket.types'
+import { createSlice } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
 
-export interface SessionState {
-	pollId: string | null
-	role: Role | null
-	clientId: string | null
-	displayName: string | null
-	connected: boolean
-	kicked: boolean
+interface SessionState {
+  role: 'student' | 'teacher' | null
+  displayName: string | null
+  clientId: string | null
+  pollId: string | null
+  isConnected: boolean
+  socketId: string | null
 }
 
 const initialState: SessionState = {
-	pollId: null,
-	role: null,
-	clientId: null,
-	displayName: null,
-	connected: false,
-	kicked: false,
+  role: localStorage.getItem('role') as 'student' | 'teacher' | null,
+  displayName: localStorage.getItem('displayName'),
+  clientId: localStorage.getItem('clientId'),
+  pollId: localStorage.getItem('pollId'),
+  isConnected: false,
+  socketId: null,
 }
 
-export const joinRoom = createAsyncThunk(
-	'session/joinRoom',
-	async (payload: { pollId: string; role: Role; clientId: string; displayName: string }) => {
-		const socket = getSocket()
-		socket.emit('join_room', payload)
-		return payload
-	}
-)
-
 const sessionSlice = createSlice({
-	name: 'session',
-	initialState,
-	reducers: {
-		setConnected(state, action: PayloadAction<boolean>) { state.connected = action.payload },
-		setKicked(state, action: PayloadAction<boolean>) { state.kicked = action.payload },
-		resetSession(state) {
-			Object.assign(state, initialState)
-		}
-	},
-	extraReducers: builder => {
-		builder.addCase(joinRoom.fulfilled, (state, action) => {
-			state.pollId = action.payload.pollId
-			state.role = action.payload.role
-			state.clientId = action.payload.clientId
-			state.displayName = action.payload.displayName
-		})
-	}
+  name: 'session',
+  initialState,
+  reducers: {
+    setRole: (state, action: PayloadAction<'student' | 'teacher'>) => {
+      state.role = action.payload
+      localStorage.setItem('role', action.payload)
+    },
+    setDisplayName: (state, action: PayloadAction<string>) => {
+      state.displayName = action.payload
+      localStorage.setItem('displayName', action.payload)
+    },
+    setClientId: (state, action: PayloadAction<string>) => {
+      state.clientId = action.payload
+      localStorage.setItem('clientId', action.payload)
+    },
+    setPollId: (state, action: PayloadAction<string>) => {
+      state.pollId = action.payload
+      localStorage.setItem('pollId', action.payload)
+    },
+    setConnected: (state, action: PayloadAction<boolean>) => {
+      state.isConnected = action.payload
+    },
+    setSocketId: (state, action: PayloadAction<string>) => {
+      state.socketId = action.payload
+    },
+    clearSession: (state) => {
+      state.role = null
+      state.displayName = null
+      state.clientId = null
+      state.pollId = null
+      state.isConnected = false
+      state.socketId = null
+      localStorage.removeItem('role')
+      localStorage.removeItem('displayName')
+      localStorage.removeItem('clientId')
+      localStorage.removeItem('pollId')
+    }
+  },
 })
 
-export const { setConnected, setKicked, resetSession } = sessionSlice.actions
+export const { setRole, setDisplayName, setClientId, setPollId, setConnected, setSocketId, clearSession } = sessionSlice.actions
 export default sessionSlice.reducer

@@ -3,22 +3,17 @@ import BadgeComponent from "@/components/custom/global/IntervuePollBadge"
 import HeadingComponent from "@/components/custom/global/Heading"
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '@/redux/hooks'
-import { emitJoinRoom } from '@/redux/socket/socketThunks'
-import { joinRoom } from '@/redux/session/sessionSlice'
+import { setRole } from '@/redux/session/sessionSlice'
 
 export default function Home() {
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
 
     const startFlow = (role: 'student' | 'teacher') => {
-        const clientId = localStorage.getItem('clientId') || crypto.randomUUID()
-        localStorage.setItem('clientId', clientId)
-        const displayName = localStorage.getItem('displayName') || (role === 'teacher' ? 'Teacher' : 'Student')
-        const pollId = localStorage.getItem('pollId') || 'demo'
-        dispatch(joinRoom({ pollId, role, clientId, displayName }))
-        dispatch(emitJoinRoom({ pollId, role, clientId, displayName }))
-        if (role === 'teacher') navigate('/create-question')
-        else navigate('/question/current')
+        if (role) {
+            dispatch(setRole(role))
+            navigate('/name-entry')
+        }
     }
     return (
         <>

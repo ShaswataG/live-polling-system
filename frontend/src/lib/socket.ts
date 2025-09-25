@@ -1,25 +1,93 @@
 // frontend/src/lib/socket.ts
-import { io, type Socket } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client'
 
-let socket: Socket | null = null;
+class SocketService {
+  private socket: Socket | null = null
+  private reconnectAttempts = 0
+  private maxReconnectAttempts = 5
 
-export function getSocket(): Socket {
-	if (!socket) {
-		const url = import.meta.env.VITE_SOCKET_URL || 'http://localhost:4000';
-		socket = io(url, { transports: ['websocket'], autoConnect: true });
-	}
-	return socket;
+  connect(serverUrl: string = 'http://localhost:4000') {
+    if (this.socket?.connected) return this.socket
+
+    this.socket = io(serverUrl, {
+      transports: ['websocket'],
+      autoConnect: true,
+    })
+
+    this.socket.on('connect', () => {
+      console.log('Socket connected:', this.socket?.id)
+      this.reconnectAttempts = 0
+    })
+
+    this.socket.on('disconnect', (reason) => {
+      console.log('Socket disconnected:', reason)
+    })
+
+    this.socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error)
+      this.handleReconnect()
+    })
+
+    return this.socket
+  }
+
+  private handleReconnect() {
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.reconnectAttempts++
+      setTimeout(() => {
+        console.log(`Reconnection attempt ${this.reconnectAttempts}`)
+        this.socket?.connect()
+      }, 1000 * this.reconnectAttempts)
+    }
+  }
+
+  // Backend socket events
+  joinRoom(payload: { pollId: string; role: string; clientId: string; displayName: string }) {
+    this.socket?.emit('join_room', payload)
+  }
+
+  startQuestion(payload: { pollId: string; questionId: string }) {
+    this.socket?.emit('start_question', payload)
+  }
+
+  submitAnswer(payload: { pollId: string; questionId: string; clientId: string; optionId: string }) {
+    this.socket?.emit('submit_answer', payload)
+  }
+
+  endQuestion(payload: { pollId: string; questionId: string }) {
+    this.socket?.emit('end_question', payload)
+  }
+
+  kickStudent(payload: { pollId: string; clientId: string }) {
+    this.socket?.emit('kick_student', payload)
+  }
+
+  createQuestion(payload: { pollId: string; text: string; options: any[]; timeLimit?: number }, callback?: (response: any) => void) {
+    this.socket?.emit('teacher:create_question', payload, callback)
+  }
+
+  // Event listeners
+  on(event: string, callback: (...args: any[]) => void) {
+    this.socket?.on(event, callback)
+  }
+
+  off(event: string, callback?: (...args: any[]) => void) {
+    this.socket?.off(event, callback)
+  }
+
+  disconnect() {
+    this.socket?.disconnect()
+    this.socket = null
+  }
+
+  get isConnected() {
+    return this.socket?.connected || false
+  }
+
+  get socketId() {
+    return this.socket?.id
+  }
 }
 
-export function ensureSocketConnected(cb?: (s: Socket) => void) {
-	const s = getSocket();
-	if (s.connected) cb?.(s);
-	else s.on('connect', () => cb?.(s));
-}
-
-export function disconnectSocket() {
-	if (socket) {
-		socket.disconnect();
-		socket = null;
-	}
-}
+export const socketService = new SocketService()
+export default socketService
