@@ -5,7 +5,7 @@ export type OptionItem = { optionId: string; text: string; isCorrect?: boolean }
 
 
 interface IQuestion extends Document {
-    pollId: Types.ObjectId;
+    pollId: string;
     text: string;
     options: OptionItem[];
     timeLimit: number; // seconds
@@ -25,7 +25,7 @@ isCorrect: { type: Boolean, default: false }
 
 const QuestionSchema = new Schema(
     {
-        pollId: { type: Schema.Types.ObjectId, ref: 'Poll', required: true, index: true },
+        pollId: { type: String, required: true, index: true },
         text: { type: String, required: true },
         options: { type: [OptionSchema], validate: [(arr: OptionItem[]) => arr.length >= 2, 'At least 2 options required'] },
         timeLimit: { type: Number, default: 60 },

@@ -67,7 +67,7 @@ class PollService {
     timeLimit?: number;
   }) {
     // 1. Fetch poll
-    const poll = await Poll.findOne({ _id: pollId, status: "active" });
+    const poll = await Poll.findOne({ pollId, status: "active" });
     if (!poll) {
       throw new Error("Poll not found or inactive");
     }
